@@ -62,3 +62,9 @@ htmlcov/
 # =========================
 *.bak
 *.swp
+
+# Maven
+target/
+
+# Java
+*.class
