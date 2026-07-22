@@ -1,0 +1,33 @@
+:root {
+    /* Base Colors - Light Theme */
+    --bg-primary: #F5F5F7;
+    --bg-secondary: rgba(255, 255, 255, 0.7);
+    --text-primary: #1D1D1F;
+    --text-secondary: #86868B;
+    --accent: #0A84FF;
+    --accent-hover: #0071E3;
+    --glass-border: rgba(255, 255, 255, 0.5);
+    --glass-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+    --focus-ring: 0 0 0 4px rgba(10, 132, 255, 0.3);
+    
+    /* Layout */
+    --nav-height: 72px;
+    --radius-sm: 10px;
+    --radius-md: 18px;
+    --radius-lg: 28px;
+    
+    /* Transitions */
+    --transition-fast: 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+    --transition-smooth: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+[data-theme="dark"] {
+    /* Base Colors - Dark Theme */
+    --bg-primary: #000000; /* True black for OLED Apple look */
+    --bg-secondary: rgba(28, 28, 30, 0.6);
+    --text-primary: #F5F5F7;
+    --text-secondary: #86868B;
+    --glass-border: rgba(255, 255, 255, 0.15);
+    --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+    --focus-ring: 0 0 0 4px rgba(10, 132, 255, 0.4);
+}

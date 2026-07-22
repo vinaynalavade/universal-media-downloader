@@ -1,0 +1,7 @@
+Test Case ID,Module,Description,Preconditions,Steps,Expected Result,Status
+TC001,UI,Verify Theme Toggle,Page loaded in browser,1. Click Theme Toggle button,Theme switches from Dark to Light or vice-versa,Pending
+TC002,Validation,Verify Invalid URL,Page loaded in browser,"1. Enter 'hello world' in URL input\n2. Click Fetch",Error toast 'Please enter a valid URL' appears,Pending
+TC003,Core,Fetch YouTube Metadata,Backend running and reachable,"1. Enter valid YouTube URL\n2. Click Fetch",Loading spinner appears then Results section shows Thumbnail, Title, and Qualities,Pending
+TC004,Core,Download Audio Only,Results section visible,"1. Select Format 'Audio'\n2. Click Download",File is downloaded as .mp3,Pending
+TC005,Core,Download Video,Results section visible,"1. Select Format 'Video'\n2. Select 1080p Quality\n3. Click Download",File is downloaded as .mp4 and plays successfully,Pending
+TC006,Security,Verify Path Traversal,Backend API reachable,"1. Send GET to /api/v1/file/../../../etc/passwd",403 Forbidden or 404 Not Found returned,Pending
