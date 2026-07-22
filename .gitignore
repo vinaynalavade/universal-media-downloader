@@ -25,6 +25,7 @@ downloads/
 # Temporary Files
 *.tmp
 *.temp
+*.mp4
 
 # =========================
 # Logs
