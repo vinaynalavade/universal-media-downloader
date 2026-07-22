@@ -764,6 +764,44 @@ main {
     to { opacity: 0; transform: translate(-50%, 50px); }
 }
 
+/* Creator Signature */
+.creator-signature {
+    margin-top: 56px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.signature-divider {
+    width: 100%;
+    border: none;
+    border-top: 1px solid var(--glass-border);
+    opacity: 0.5;
+    margin-bottom: 18px;
+}
+
+.signature-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.signature-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.signature-name {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: 0.02em;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .hero-title {

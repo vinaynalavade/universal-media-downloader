@@ -48,13 +48,30 @@ def process_download(url: str, format_id: str, media_type: str, task_id: str):
             task_manager.update_task(task_id, message="Marrying video with audio...", speed="Merging...", eta="Hold tight")
 
     ydl_opts = {
-        'outtmpl': output_template,
-        'quiet': True,
-        'no_warnings': True,
-        'progress_hooks': [progress_hook],
-        'writethumbnail': True, # Request: Thumbnail extraction
-        'writesubtitles': True, # Request: Subtitle extraction
-        'subtitleslangs': ['en'],
+        "outtmpl": output_template,
+        "quiet": True,
+        "no_warnings": True,
+        "progress_hooks": [progress_hook],
+
+        "writethumbnail": True,
+        "writesubtitles": True,
+        "subtitleslangs": ["en"],
+
+        # Better compatibility
+        "nocheckcertificate": True,
+        "geo_bypass": True,
+        "extractor_retries": 5,
+        "fragment_retries": 5,
+        "retries": 5,
+
+        # Pretend to be a browser
+        "http_headers": {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/138.0.0.0 Safari/537.36"
+            )
+        }
     }
     
     if media_type == "audio":
