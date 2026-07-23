@@ -18,7 +18,7 @@ public class DownloaderTest {
 
     private WebDriver driver;
     private WebDriverWait wait;
-    private final String BASE_URL = "http://localhost:8080"; // Assuming local docker deployment
+    private final String BASE_URL = "https://vinaynalavade.github.io/universal-media-downloader/";
 
     @BeforeClass
     public void setUp() {

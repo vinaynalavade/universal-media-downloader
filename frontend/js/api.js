@@ -23,6 +23,9 @@ export const API = {
             const response = await fetch(`${API_BASE}/info?url=${encodeURIComponent(url)}`);
             if (!response.ok) {
                 const err = await response.json();
+                if (err.message) {
+                    throw new Error(err.message);
+                }
                 throw new Error(err.detail || 'Failed to fetch info');
             }
             return await response.json();

@@ -1,4 +1,4 @@
-/* Animations */
+/* Premium Animations */
 
 @keyframes spin {
     to { transform: rotate(360deg); }
@@ -6,31 +6,60 @@
 
 @keyframes scroll {
     0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); } /* Scrolls half width since we duplicated content */
+    100% { transform: translateX(-50%); }
 }
 
-@keyframes slideIn {
-    to { transform: translateX(0); }
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
 
 @keyframes fadeOut {
-    to { opacity: 0; }
+    to { opacity: 0; transform: scale(0.95); }
 }
 
 .fade-in-up {
     opacity: 0;
-    transform: translateY(20px);
-    animation: fadeInUp 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    transform: translateY(20px) scale(0.98);
+    animation: fadeInUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 @keyframes fadeInUp {
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
     }
 }
 
+/* Liquid scale for buttons and inputs */
+@keyframes liquidPulse {
+    0% { box-shadow: 0 0 0 0 var(--accent-glow); }
+    70% { box-shadow: 0 0 0 10px rgba(0, 102, 204, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 102, 204, 0); }
+}
+
+/* Shimmer for skeletons */
 @keyframes shimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* Smooth enter for list items/queue */
+@keyframes popIn {
+    0% { opacity: 0; transform: scale(0.9) translateY(10px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.pop-in {
+    animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Button State Transition (Paste <-> Clear) */
+@keyframes btnPop {
+    0% { opacity: 0.5; transform: translateY(-50%) scale(0.95); }
+    100% { opacity: 1; transform: translateY(-50%) scale(1); }
+}
+
+.btn-transition {
+    animation: btnPop 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
 }

@@ -4,8 +4,8 @@ import os
 import uuid
 import shutil
 
-from app.models.schemas import DownloadRequest, MediaInfo, DownloadResponse, TaskStatus
-from app.services.metadata_service import get_media_info
+from app.models.schemas import DownloadRequest, MediaResponse, DownloadResponse, TaskStatus
+from app.services.metadata_service import get_media_info, MetadataExtractionError
 from app.services.downloader import process_download
 from app.services.task_manager import task_manager
 from app.utils.security import sanitize_url, rate_limit
@@ -17,7 +17,7 @@ async def check_ffmpeg():
     has_ffmpeg = shutil.which("ffmpeg") is not None
     return {"ffmpeg_installed": has_ffmpeg}
 
-@router.get("/info", response_model=MediaInfo)
+@router.get("/info", response_model=MediaResponse)
 async def fetch_info(request: Request, url: str):
     if not rate_limit(request.client.host):
         raise HTTPException(status_code=429, detail="Rate limit exceeded")
@@ -29,8 +29,30 @@ async def fetch_info(request: Request, url: str):
     try:
         info = get_media_info(valid_url)
         return info
+    except MetadataExtractionError as e:
+        # Return a custom structured error response (can use 400 for bad requests or 403 for blocked)
+        # Using 400 so the frontend can catch it and display the message nicely.
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            status_code=400,
+            content={
+                "success": False,
+                "platform": e.platform,
+                "error_code": e.error_code,
+                "message": e.message
+            }
+        )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "platform": "unknown",
+                "error_code": "INTERNAL_SERVER_ERROR",
+                "message": str(e)
+            }
+        )
 
 @router.post("/download", response_model=DownloadResponse)
 async def start_download(request: Request, req: DownloadRequest, background_tasks: BackgroundTasks):

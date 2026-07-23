@@ -17,13 +17,31 @@ class FormatInfo(BaseModel):
     acodec: str
     quality_label: str
 
-class MediaInfo(BaseModel):
+class MediaItem(BaseModel):
     id: str
+    media_type: str # "video" or "image"
+    thumbnail: str
+    duration: Optional[int] = 0
+    width: Optional[int] = None
+    height: Optional[int] = None
+    download_url: Optional[str] = None
+    formats: List[FormatInfo] = []
+
+class MediaResponse(BaseModel):
+    success: bool = True
+    platform: str
+    type: str # "single", "carousel"
     title: str
     thumbnail: str
-    duration: int
-    extractor: str
-    formats: List[FormatInfo]
+    uploader: Optional[str] = None
+    upload_date: Optional[str] = None
+    items: List[MediaItem]
+
+class ErrorResponse(BaseModel):
+    success: bool = False
+    platform: str
+    error_code: str
+    message: str
 
 class DownloadResponse(BaseModel):
     task_id: str

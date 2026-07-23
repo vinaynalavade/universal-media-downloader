@@ -1,0 +1,30 @@
+{
+  "_type": "playlist",
+  "id": "DTj9dxUkQOm",
+  "title": "Post by vinayrealm",
+  "channel": "vinayrealm",
+  "uploader_id": "38713903871",
+  "uploader": "\uaa9c\u1ec9\uaa80\uaa96\uaa97",
+  "timestamp": 1768545702,
+  "like_count": 75,
+  "comment_count": 6,
+  "http_headers": {
+    "Referer": "https://www.instagram.com/"
+  },
+  "entries": [
+    null,
+    null,
+    null,
+    null
+  ],
+  "webpage_url": "https://www.instagram.com/p/DTj9dxUkQOm/",
+  "original_url": "https://www.instagram.com/p/DTj9dxUkQOm/",
+  "webpage_url_basename": "DTj9dxUkQOm",
+  "webpage_url_domain": "instagram.com",
+  "extractor": "Instagram",
+  "extractor_key": "Instagram",
+  "upload_date": "20260116",
+  "release_year": null,
+  "playlist_count": 4,
+  "epoch": 1784795590
+}

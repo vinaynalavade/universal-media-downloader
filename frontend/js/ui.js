@@ -12,7 +12,7 @@ export const UI = {
         this.elements = {
             themeToggle: document.getElementById('theme-toggle'),
             urlInput: document.getElementById('url-input'),
-            pasteBtn: document.getElementById('paste-btn'),
+            actionBtn: document.getElementById('action-btn'),
             downloadForm: document.getElementById('download-form'),
             resultsContainer: document.getElementById('results-container'),
             loadingOverlay: document.getElementById('loading-overlay'),
@@ -33,6 +33,13 @@ export const UI = {
             qualitySelect: document.getElementById('quality-select'),
             qualityGroup: document.getElementById('quality-group'),
             downloadBtn: document.getElementById('download-btn'),
+            
+            errorCard: document.getElementById('error-card'),
+            errorTitle: document.getElementById('error-title'),
+            errorDesc: document.getElementById('error-desc'),
+            mobileMenuBtn: document.getElementById('mobile-menu-btn'),
+            mobileMenu: document.getElementById('mobile-menu'),
+            themeColorMeta: document.getElementById('theme-color-meta'),
             
             sunIcon: document.querySelector('.sun-icon'),
             moonIcon: document.querySelector('.moon-icon'),
@@ -55,21 +62,46 @@ export const UI = {
         this.loadTheme();
     },
     
+    updateActionBtnState() {
+        if (!this.elements.actionBtn || !this.elements.urlInput) return;
+        
+        const hasText = this.elements.urlInput.value.trim().length > 0;
+        const btn = this.elements.actionBtn;
+        const icon = btn.querySelector('.btn-icon');
+        const textSpan = btn.querySelector('.btn-text');
+        
+        if (hasText && btn.getAttribute('data-state') !== 'clear') {
+            btn.setAttribute('data-state', 'clear');
+            btn.setAttribute('aria-label', 'Clear URL');
+            if(textSpan) textSpan.textContent = 'Clear';
+            
+            // Add slight animation class
+            btn.classList.remove('btn-transition');
+            void btn.offsetWidth; // trigger reflow
+            btn.classList.add('btn-transition');
+            
+            if(icon) {
+                icon.innerHTML = '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>';
+            }
+        } else if (!hasText && btn.getAttribute('data-state') !== 'paste') {
+            btn.setAttribute('data-state', 'paste');
+            btn.setAttribute('aria-label', 'Paste URL');
+            if(textSpan) textSpan.textContent = 'Paste';
+            
+            // Add slight animation class
+            btn.classList.remove('btn-transition');
+            void btn.offsetWidth; // trigger reflow
+            btn.classList.add('btn-transition');
+            
+            if(icon) {
+                icon.innerHTML = '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>';
+            }
+        }
+    },
+    
     bindEvents() {
         if(this.elements.themeToggle) {
             this.elements.themeToggle.addEventListener('click', () => this.toggleTheme());
-        }
-        
-        if(this.elements.pasteBtn) {
-            this.elements.pasteBtn.addEventListener('click', async () => {
-                try {
-                    const text = await navigator.clipboard.readText();
-                    this.elements.urlInput.value = text;
-                    Utils.showToast('Pasted from clipboard', 'success');
-                } catch (err) {
-                    Utils.showToast('Failed to read clipboard. Permissions needed.', 'error');
-                }
-            });
         }
         
         if(this.elements.downloadForm) {
@@ -96,6 +128,48 @@ export const UI = {
             });
         } else {
             console.error("downloadBtn NOT FOUND during bindEvents!");
+        }
+        
+        if(this.elements.actionBtn) {
+            this.elements.actionBtn.addEventListener('click', async () => {
+                const state = this.elements.actionBtn.getAttribute('data-state');
+                
+                if (state === 'paste') {
+                    // Paste behavior
+                    try {
+                        const text = await navigator.clipboard.readText();
+                        if (text) {
+                            this.elements.urlInput.value = text;
+                            this.updateActionBtnState();
+                        }
+                    } catch (err) {
+                        Utils.showToast('Failed to read clipboard. Permissions needed.', 'error');
+                    }
+                } else if (state === 'clear') {
+                    // Clear behavior
+                    this.elements.urlInput.value = '';
+                    this.elements.resultsContainer.classList.add('hidden');
+                    this.elements.errorCard.classList.add('hidden');
+                    this.updateActionBtnState();
+                    this.elements.urlInput.focus();
+                }
+            });
+        }
+        
+        if(this.elements.urlInput) {
+            this.elements.urlInput.addEventListener('input', () => {
+                this.updateActionBtnState();
+                this.elements.errorCard.classList.add('hidden');
+            });
+        }
+        
+        if(this.elements.mobileMenuBtn) {
+            this.elements.mobileMenuBtn.addEventListener('click', () => {
+                this.elements.mobileMenu.classList.toggle('hidden');
+                if (!this.elements.mobileMenu.classList.contains('hidden')) {
+                    this.elements.mobileMenu.classList.add('fade-in-up');
+                }
+            });
         }
         
         // Drag and Drop support
@@ -220,10 +294,13 @@ export const UI = {
         let actualTheme = themeType;
         if (themeType === 'system') {
             actualTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            // Show a system icon if we had one, but we'll just toggle sun/moon based on the computed value
         }
         
         this.elements.html.setAttribute('data-theme', actualTheme);
+        
+        if (this.elements.themeColorMeta) {
+            this.elements.themeColorMeta.setAttribute('content', actualTheme === 'dark' ? '#000000' : '#F5F5F7');
+        }
         
         if(actualTheme === 'dark') {
             this.elements.sunIcon.classList.remove('hidden');
@@ -245,8 +322,10 @@ export const UI = {
     async handleFetch() {
         const url = this.elements.urlInput.value.trim();
         
+        this.elements.errorCard.classList.add('hidden');
+        
         if (!Validation.isValidUrl(url)) {
-            Utils.showToast('Please enter a valid URL', 'error');
+            this.showErrorCard('Invalid URL format', 'Please paste a valid media URL.');
             return;
         }
         
@@ -256,17 +335,31 @@ export const UI = {
         this.elements.realContent.classList.add('hidden');
         
         try {
-            const info = await API.fetchInfo(url);
-            this.currentMediaInfo = info;
+            const response = await API.fetchInfo(url);
+            this.currentMediaResponse = response;
+            
+            // Use the first item for UI to maintain compatibility
+            const firstItem = response.items && response.items.length > 0 ? response.items[0] : null;
+            if (!firstItem) throw new Error("No media items found.");
+            
+            this.currentMediaInfo = {
+                title: response.title,
+                thumbnail: response.thumbnail || firstItem.thumbnail,
+                duration: firstItem.duration || 0,
+                formats: firstItem.formats || [],
+                id: firstItem.id,
+                download_url: firstItem.download_url || url,
+                media_type: firstItem.media_type
+            };
             
             // Populate UI
-            this.elements.mediaThumbnail.src = info.thumbnail || 'images/placeholder.jpg';
-            this.elements.mediaTitle.textContent = info.title;
-            const platform = Validation.getPlatformFromUrl(url);
-            this.elements.mediaMeta.textContent = `Duration: ${Utils.formatDuration(info.duration)} • Platform: ${platform}`;
+            this.elements.mediaThumbnail.src = this.currentMediaInfo.thumbnail || 'images/placeholder.jpg';
+            this.elements.mediaTitle.textContent = this.currentMediaInfo.title;
+            const platform = response.platform || Validation.getPlatformFromUrl(url);
+            this.elements.mediaMeta.textContent = `${Utils.formatDuration(this.currentMediaInfo.duration)} • ${platform}`;
             
             // Trigger format population
-            Components.populateQualities(info.formats, this.elements.qualitySelect, this.elements.formatSelect.value);
+            Components.populateQualities(this.currentMediaInfo.formats, this.elements.qualitySelect, this.elements.formatSelect.value);
             
             // Hide skeleton, show real content
             this.elements.skeletonLoader.classList.add('hidden');
@@ -276,22 +369,33 @@ export const UI = {
             this.elements.resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             
         } catch (error) {
-            Utils.showToast(error.message, 'error');
             this.elements.resultsContainer.classList.add('hidden');
+            this.showErrorCard('Unable to fetch media', error.message || 'The URL might be private or unsupported.');
         }
+    },
+    
+    showErrorCard(title, description) {
+        if (this.elements.errorTitle) this.elements.errorTitle.textContent = title;
+        if (this.elements.errorDesc) this.elements.errorDesc.textContent = description;
+        this.elements.errorCard.classList.remove('hidden');
+        
+        // Remove animation class and add it back to restart animation
+        this.elements.errorCard.classList.remove('fade-in-up');
+        void this.elements.errorCard.offsetWidth; // trigger reflow
+        this.elements.errorCard.classList.add('fade-in-up');
     },
     
     async handleDownload() {
         console.log("handleDownload() execution started!");
         try {
-            const url = this.elements.urlInput.value.trim();
+            const urlToDownload = this.currentMediaInfo.download_url || this.elements.urlInput.value.trim();
             const type = this.elements.formatSelect.value;
             const formatId = this.elements.qualitySelect.value;
             const qualityLabel = this.elements.qualitySelect.options[this.elements.qualitySelect.selectedIndex].text;
             
-            console.log("Values retrieved:", { url, type, formatId });
+            console.log("Values retrieved:", { url: urlToDownload, type, formatId });
             
-            QueueManager.add(this.currentMediaInfo, formatId, type, url, qualityLabel);
+            QueueManager.add(this.currentMediaInfo, formatId, type, urlToDownload, qualityLabel);
         } catch (error) {
             Utils.showToast(error.message, 'error');
         }
