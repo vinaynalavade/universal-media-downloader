@@ -68,3 +68,12 @@ target/
 
 # Java
 *.class
+
+# Temporary debug outputs
+backend/output.json
+backend/test_info*.json
+
+# Temporary debug scripts
+backend/test_yt.py
+backend/test_youtube.py
+backend/test_refactor.py
