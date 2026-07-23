@@ -92,11 +92,15 @@ def _parse_item(data: dict, fallback_id: str) -> MediaItem:
     for f in formats_source:
         vcodec = f.get('vcodec', 'none')
         acodec = f.get('acodec', 'none')
+        ext = f.get('ext', '')
         
-        # Don't add storyboards/images to video formats list if they aren't videos
-        if vcodec != 'none' or acodec != 'none':
-            # Images in yt-dlp formats often have vcodec mhtml or none, video usually has real codec
-            if vcodec != 'none' and vcodec != 'mhtml':
+        # yt-dlp for Instagram Reels often returns vcodec='none' and acodec='none' 
+        # despite it being a valid mp4 video format.
+        is_video_format = (vcodec != 'none' or acodec != 'none' or ext == 'mp4')
+        
+        if is_video_format:
+            # Images in yt-dlp formats often have vcodec mhtml or none, video usually has real codec or mp4 ext
+            if (vcodec != 'none' and vcodec != 'mhtml') or ext == 'mp4':
                 has_video = True
             formats.append(FormatInfo(
                 format_id=f.get('format_id', ''),
@@ -114,16 +118,53 @@ def _parse_item(data: dict, fallback_id: str) -> MediaItem:
     
     # Extract best thumbnail/image
     thumbnail = data.get('thumbnail', '')
-    download_url = data.get('url') # Sometimes direct URL is here
+    original_url = data.get('url')
+    display_url = data.get('display_url')
+    
+    download_url = None
     
     if media_type == "image":
-        thumbnails = data.get('thumbnails', [])
-        if thumbnails:
-            # Usually the last thumbnail is the highest quality
-            best_thumb = thumbnails[-1]
-            thumbnail = best_thumb.get('url', thumbnail)
-            download_url = thumbnail
+        # Priority 1: Original URL from yt-dlp
+        if original_url:
+            download_url = original_url
+        # Priority 2: Display URL
+        elif display_url:
+            download_url = display_url
             
+        thumbnails = data.get('thumbnails', [])
+        best_thumb_url = None
+        if thumbnails:
+            import re
+            best_res = -1
+            best_thumb_url = thumbnails[-1].get('url', thumbnail)
+            for t in thumbnails:
+                url = t.get('url', '')
+                if not url: continue
+                # Look for resize parameters like s1080x1080 or p1080x1080
+                match = re.search(r'(?:s|p)(\d+)x(\d+)', url)
+                if not match:
+                    # No resize parameter found, this is the original uncropped image
+                    best_thumb_url = url
+                    break
+                w, h = int(match.group(1)), int(match.group(2))
+                res = w * h
+                if res > best_res:
+                    best_res = res
+                    best_thumb_url = url
+                        
+        # If we didn't get an original URL, fallback to the best thumbnail
+        if not download_url:
+            download_url = best_thumb_url or thumbnail
+            
+        # Ensure thumbnail is set
+        thumbnail = best_thumb_url or thumbnail
+    else:
+        # For videos and audio, we MUST NOT return the direct stream URL (original_url)
+        # because it contains & characters that break sanitize_url() and it breaks 
+        # yt-dlp's generic downloader which expects the clean page URL.
+        # By keeping download_url = None, the frontend falls back to the clean input URL.
+        download_url = None
+        
     width = data.get('width')
     height = data.get('height')
     duration = data.get('duration', 0)

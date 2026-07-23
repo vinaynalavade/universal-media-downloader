@@ -52,12 +52,18 @@ export const Components = {
             let label = `${resStr}${sizeStr} - ${f.ext}`;
             
             // FFmpeg limitation logic
-            if (window.ffmpegMissing && type === 'video') {
-                const highResRegex = /1080p|1440p|2160p|4320p|4k|8k/i;
-                const highResNumberRegex = /1080|1440|2160|4320/;
-                
-                if (highResRegex.test(resStr) || highResNumberRegex.test(resStr) || 
-                    (f.quality_label && highResRegex.test(f.quality_label))) {
+            if (window.ffmpegMissing) {
+                if (type === 'video') {
+                    const highResRegex = /1080p|1440p|2160p|4320p|4k|8k/i;
+                    const highResNumberRegex = /1080|1440|2160|4320/;
+                    
+                    if (highResRegex.test(resStr) || highResNumberRegex.test(resStr) || 
+                        (f.quality_label && highResRegex.test(f.quality_label))) {
+                        option.disabled = true;
+                        label += ' (Requires FFmpeg)';
+                    }
+                } else if (type === 'audio') {
+                    // yt-dlp audio extraction strictly requires ffmpeg
                     option.disabled = true;
                     label += ' (Requires FFmpeg)';
                 }

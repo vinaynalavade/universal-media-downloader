@@ -3,6 +3,7 @@ import { API } from './api.js';
 import { Utils } from './utils.js';
 import { Components } from './components.js';
 import { QueueManager } from './queue.js';
+import { MediaRenderer } from './renderers.js';
 
 export const UI = {
     elements: {},
@@ -24,15 +25,6 @@ export const UI = {
             progressContainer: document.getElementById('progress-container'),
             progressFill: document.getElementById('progress-fill'),
             progressText: document.getElementById('progress-text'),
-            
-            mediaThumbnail: document.getElementById('media-thumbnail'),
-            mediaTitle: document.getElementById('media-title'),
-            mediaMeta: document.getElementById('media-meta'),
-            
-            formatSelect: document.getElementById('format-select'),
-            qualitySelect: document.getElementById('quality-select'),
-            qualityGroup: document.getElementById('quality-group'),
-            downloadBtn: document.getElementById('download-btn'),
             
             errorCard: document.getElementById('error-card'),
             errorTitle: document.getElementById('error-title'),
@@ -109,25 +101,6 @@ export const UI = {
                 e.preventDefault();
                 await this.handleFetch();
             });
-        }
-        
-        if(this.elements.formatSelect) {
-            this.elements.formatSelect.addEventListener('change', (e) => {
-                if(!this.currentMediaInfo) return;
-                const type = e.target.value;
-                Components.populateQualities(this.currentMediaInfo.formats, this.elements.qualitySelect, type);
-            });
-        }
-        
-        if(this.elements.downloadBtn) {
-            console.log("Found downloadBtn, attaching click listener");
-            this.elements.downloadBtn.addEventListener('click', async (e) => {
-                console.log("Download button clicked!", e);
-                e.preventDefault();
-                await this.handleDownload();
-            });
-        } else {
-            console.error("downloadBtn NOT FOUND during bindEvents!");
         }
         
         if(this.elements.actionBtn) {
@@ -352,14 +325,9 @@ export const UI = {
                 media_type: firstItem.media_type
             };
             
-            // Populate UI
-            this.elements.mediaThumbnail.src = this.currentMediaInfo.thumbnail || 'images/placeholder.jpg';
-            this.elements.mediaTitle.textContent = this.currentMediaInfo.title;
-            const platform = response.platform || Validation.getPlatformFromUrl(url);
-            this.elements.mediaMeta.textContent = `${Utils.formatDuration(this.currentMediaInfo.duration)} • ${platform}`;
-            
-            // Trigger format population
-            Components.populateQualities(this.currentMediaInfo.formats, this.elements.qualitySelect, this.elements.formatSelect.value);
+            // Populate UI dynamically using MediaRenderer
+            this.elements.realContent.innerHTML = ''; // clear previous
+            this.elements.realContent.appendChild(MediaRenderer.render(this.currentMediaResponse));
             
             // Hide skeleton, show real content
             this.elements.skeletonLoader.classList.add('hidden');
@@ -383,22 +351,6 @@ export const UI = {
         this.elements.errorCard.classList.remove('fade-in-up');
         void this.elements.errorCard.offsetWidth; // trigger reflow
         this.elements.errorCard.classList.add('fade-in-up');
-    },
-    
-    async handleDownload() {
-        console.log("handleDownload() execution started!");
-        try {
-            const urlToDownload = this.currentMediaInfo.download_url || this.elements.urlInput.value.trim();
-            const type = this.elements.formatSelect.value;
-            const formatId = this.elements.qualitySelect.value;
-            const qualityLabel = this.elements.qualitySelect.options[this.elements.qualitySelect.selectedIndex].text;
-            
-            console.log("Values retrieved:", { url: urlToDownload, type, formatId });
-            
-            QueueManager.add(this.currentMediaInfo, formatId, type, urlToDownload, qualityLabel);
-        } catch (error) {
-            Utils.showToast(error.message, 'error');
-        }
-    },
+    }
     // Polling is now handled by queue.js
 };

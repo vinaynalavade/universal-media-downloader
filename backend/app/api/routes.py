@@ -8,7 +8,7 @@ from app.models.schemas import DownloadRequest, MediaResponse, DownloadResponse,
 from app.services.metadata_service import get_media_info, MetadataExtractionError
 from app.services.downloader import process_download
 from app.services.task_manager import task_manager
-from app.utils.security import sanitize_url, rate_limit
+from app.utils.security import sanitize_url, sanitize_image_url, rate_limit
 
 router = APIRouter()
 
@@ -59,9 +59,14 @@ async def start_download(request: Request, req: DownloadRequest, background_task
     if not rate_limit(request.client.host):
         raise HTTPException(status_code=429, detail="Rate limit exceeded")
         
-    valid_url = sanitize_url(str(req.url))
-    if not valid_url:
-        raise HTTPException(status_code=400, detail="Invalid or unsupported URL")
+    if req.type == "image":
+        valid_url = sanitize_image_url(str(req.url))
+        if not valid_url:
+            raise HTTPException(status_code=400, detail="Invalid or unsupported URL")
+    else:
+        valid_url = sanitize_url(str(req.url))
+        if not valid_url:
+            raise HTTPException(status_code=400, detail="Invalid or unsupported URL")
     
     task_id = str(uuid.uuid4())
     task_manager.create_task(task_id)

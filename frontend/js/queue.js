@@ -160,7 +160,12 @@ export const QueueManager = {
                         a.click();
                         document.body.removeChild(a);
                     }
-                    Utils.showToast('Pixels delivered successfully.', 'success');
+                    Utils.showToast('Download completed successfully', 'success');
+                    
+                    // Auto-remove completed download from queue after a brief delay
+                    setTimeout(() => {
+                        this.remove(item.id);
+                    }, 2000);
                 } else if (statusData.status === 'error') {
                     item.status = 'error';
                     item.message = 'Well... that didn\'t go as planned.';
