@@ -81,6 +81,8 @@ def process_download(url: str, format_id: str, media_type: str, task_id: str):
             'preferredcodec': 'mp3',
             'preferredquality': '192',
         }]
+    elif media_type == "image":
+        ydl_opts['format'] = 'best'
     else:
         if format_id:
             ydl_opts['format'] = f"{format_id}+bestaudio/best"
@@ -99,6 +101,8 @@ def process_download(url: str, format_id: str, media_type: str, task_id: str):
                 
             if media_type == "video" and not filename.endswith('.mp4'):
                 filename = os.path.splitext(filename)[0] + ".mp4"
+                
+            # If image, keep the original extension provided by yt-dlp
                 
             task_manager.update_task(task_id, 
                                      status="completed", 
