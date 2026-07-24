@@ -683,3 +683,53 @@ main {
     font-size: 0.75rem;
     opacity: 0.8;
 }
+
+/* Text Content Pages */
+.text-content {
+    text-align: left;
+}
+
+.text-content h1, .text-content h2 {
+    margin-bottom: 16px;
+    margin-top: 24px;
+}
+.text-content h1:first-child {
+    margin-top: 0;
+}
+.text-content p {
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+}
+.site-list {
+    list-style-position: inside;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+    padding-left: 8px;
+}
+.site-list li {
+    margin-bottom: 8px;
+}
+.signature-divider {
+    border: none;
+    border-top: 1px solid var(--glass-border);
+    margin: 32px 0 16px;
+}
+.signature-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+.signature-label {
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+}
+.signature-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
